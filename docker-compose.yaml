@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  infra-as-blueprint:
+    image: infra-as-blueprint
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./config.yaml:/workspace/config.yaml
+      - ./.env:/workspace/.env
+      - ${KUBECONFIG:-~/.kube/config}:/workspace/.kube/config:ro
+    restart: never

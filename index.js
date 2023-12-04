@@ -1,5 +1,3 @@
-#!/usr/bin/env -S node --no-warnings --stack-trace-limit=1000
-
 require("events").EventEmitter.defaultMaxListeners = 0
 
 const { cli, dbug } = require("@foundernetes/blueprint")

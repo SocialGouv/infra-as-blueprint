@@ -14,6 +14,6 @@ module.exports = () =>
         api: environmentName
           ? `/repositories/${repoId}/environments/${environmentName}/secrets/${name}`
           : `/repos/${owner}/${repo}/actions/secrets/${name}`,
-      });
+      })
     },
-  });
+  })

@@ -64,11 +64,5 @@ module.exports = {
       },
     },
   },
-  required: [
-    "apiVersion",
-    "kind",
-    "clusters",
-    "contexts",
-    "users",
-  ],
-};
+  required: ["apiVersion", "kind", "clusters", "contexts", "users"],
+}

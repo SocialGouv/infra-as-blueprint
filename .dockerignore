@@ -1,8 +1,16 @@
-**/node_modules
-
+Dockerfile
+.dockerignore
+*.md
+.git
+.gitignore
+.husky
+.vscode
 node_modules
-.cjs
+.eslintrc.js
+dist
+dist-bin
 
+# yarn berry
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,10 +18,6 @@ node_modules
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-
-config.local.yaml
-
-.env
 
 dist
 dist-bin

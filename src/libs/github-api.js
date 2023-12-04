@@ -1,5 +1,5 @@
-const axios = require("@foundernetes/axios");
-const { deepmerge } = require("@foundernetes/std");
+const axios = require("@foundernetes/axios")
+const { deepmerge } = require("@foundernetes/std")
 
 const { githubApiEndpoint, githubToken } = require("~/config")
 
@@ -15,9 +15,9 @@ module.exports = ({ api, ...axiosOptions } = {}) =>
           "X-GitHub-Api-Version": "2022-11-28",
         },
         validateStatus: function (status) {
-          return status >= 200 && status < 300 || status === 404;
+          return (status >= 200 && status < 300) || status === 404
         },
       },
-      axiosOptions
-    )
-  );
+      axiosOptions,
+    ),
+  )

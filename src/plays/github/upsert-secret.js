@@ -1,9 +1,9 @@
-const { createPlay, ctx } = require("@foundernetes/blueprint");
-const dayjs = require("dayjs");
+const { createPlay, ctx } = require("@foundernetes/blueprint")
+const dayjs = require("dayjs")
 
-const githubApi = require("~/libs/github-api");
+const githubApi = require("~/libs/github-api")
 
-const githubEncyptSecret = require("~/libs/github-encrypt-secret");
+const githubEncyptSecret = require("~/libs/github-encrypt-secret")
 
 module.exports = async ({ loaders }) =>
   createPlay({
@@ -22,28 +22,31 @@ module.exports = async ({ loaders }) =>
           name,
           environmentName,
           repoId,
-        });
-      const secretLastModifiedDate =
-        secretLastModified ? dayjs(secretLastModified).toDate() : null;
-      const logger = ctx.getLogger();
+        })
+      const secretLastModifiedDate = secretLastModified
+        ? dayjs(secretLastModified).toDate()
+        : null
+      const logger = ctx.getLogger()
       const ok =
-        secretLastModifiedDate && secretLastModifiedDate >= valueLastModifiedDate || false;
+        (secretLastModifiedDate &&
+          secretLastModifiedDate >= valueLastModifiedDate) ||
+        false
       if (ok) {
         logger.info("up to date", {
           secretLastModifiedDate,
           valueLastModifiedDate,
-        });
+        })
       } else {
         if (!secretLastModifiedDate) {
-          logger.info(`doesn't exists`);
+          logger.info(`doesn't exists`)
         } else {
           logger.info(`not up to date`, {
             secretLastModifiedDate,
             valueLastModifiedDate,
-          });
+          })
         }
       }
-      return ok;
+      return ok
     },
     async run({ owner, repo, name, environmentName, repoId, value }) {
       const { data } = await loaders.github.repoPublicKey({
@@ -51,9 +54,9 @@ module.exports = async ({ loaders }) =>
         repo,
         repoId,
         environmentName,
-      });
-      const { key, key_id: keyId } = data;
-      const encryptedValue = await githubEncyptSecret(value, key);
+      })
+      const { key, key_id: keyId } = data
+      const encryptedValue = await githubEncyptSecret(value, key)
 
       await githubApi({
         method: "put",
@@ -64,6 +67,6 @@ module.exports = async ({ loaders }) =>
           encrypted_value: encryptedValue,
           key_id: keyId,
         },
-      });
+      })
     },
-  });
+  })
