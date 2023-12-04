@@ -5,9 +5,9 @@
   "main": "infra-as-blueprint",
   "license": "MIT",
   "dependencies": {
-    "@foundernetes/axios": "^1.4.9",
-    "@foundernetes/blueprint": "^1.4.9",
-    "@foundernetes/std": "^1.4.9",
+    "@foundernetes/axios": "^1.5.0",
+    "@foundernetes/blueprint": "^1.5.0",
+    "@foundernetes/std": "^1.5.0",
     "dayjs": "^1.11.10",
     "dotenv": "^16.3.1",
     "fs-extra": "^11.1.1",
