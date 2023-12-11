@@ -10,9 +10,11 @@ clusters:
   ovh-dev:
     contextName: ovh-dev
     environment: dev
+    contextRename: ovh
   ovh-prod:
     contextName: ovh-prod
     environment: prod
+    contextRename: ovh
 
 environments:
   dev:
@@ -21,9 +23,9 @@ environments:
     githubName: "production"
 
 projects:
-  test:
-    ciNamespace: ci-fabrique
-  # fabrique: {}
+  # test:
+  #   ciNamespace: ci-fabrique
+  fabrique: {}
   # sre:
   #   enabled: false
   # archifiltre: {}

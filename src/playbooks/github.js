@@ -30,6 +30,7 @@ module.exports = async () => {
           const {
             environment,
             contextName = clusterName,
+            contextRename = null,
             isEnvironmentDefaultKubeconfigContext = false,
           } = clusterConfig
           if (!projectKubeconfigs[environment]) {
@@ -63,6 +64,11 @@ module.exports = async () => {
 
           if (isEnvironmentDefaultKubeconfigContext) {
             envKubeconfig["current-context"] = contextName
+          }
+          if (contextRename) {
+            envKubeconfig.contexts.find(
+              ({ name }) => name === contextName,
+            ).name = contextRename
           }
         })
 
