@@ -105,7 +105,7 @@ module.exports = async () => {
                   environmentName,
                   repoId,
                   value: Buffer.from(
-                    JSON.stringify(projectKubeconfigs),
+                    JSON.stringify(projectKubeconfigs[envName]),
                     "utf-8",
                   ).toString("base64"),
                   valueLastModifiedDate: kubeconfigsLastCreationDate,
