@@ -14,7 +14,7 @@ module.exports = async () => {
   const { plays, loaders } = await createTree(tree, {})
 
   const playbook = async () => {
-    // const logger = ctx.getLogger()
+
     const iterator = ctx.require("iterator")
 
     const data = await loaders.config()
@@ -79,7 +79,8 @@ module.exports = async () => {
         await iterator.eachSeries(repos, async (repoConfig) => {
           const [owner, repo] = repoConfig.full_name.split("/")
           const { id: repoId } = repoConfig
-
+          const logger = ctx.getLogger()
+          logger.info(`Repo: ${repo}`)
           await iterator.eachOfSeries(
             environments,
             async (environementConfig, envName) => {
