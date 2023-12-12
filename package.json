@@ -1,7 +1,7 @@
 {
   "name": "infra-as-blueprint",
   "description": "Provision infra with flexible blueprints",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "infra-as-blueprint",
   "license": "MIT",
   "dependencies": {
