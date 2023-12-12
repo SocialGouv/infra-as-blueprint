@@ -25,10 +25,11 @@ environments:
 projects:
   # test:
   #   ciNamespace: ci-fabrique
-  fabrique: {}
+  # fabrique: {}
   # sre:
   #   enabled: false
   # archifiltre: {}
+  # bpco-mieux: {}
   # carnet-de-bord: {}
   # cdtn:
   #   team: code-du-travail
