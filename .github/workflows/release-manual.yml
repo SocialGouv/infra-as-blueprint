@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.SOCIALGROOVYBOT_BOTO_PAT }}
 
       - name: Install dependencies
         run: yarn --immutable
