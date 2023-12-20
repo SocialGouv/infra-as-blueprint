@@ -10,12 +10,7 @@ module.exports = {
   plugins: ["prettier"],
   rules: {
     "no-unused-vars": "off",
-    "prettier/prettier": [
-      "error",
-      {
-        semi: false,
-      },
-    ],
+    "prettier/prettier": ["error"],
   },
   ignorePatterns: [
     "!.versionrc.js",
