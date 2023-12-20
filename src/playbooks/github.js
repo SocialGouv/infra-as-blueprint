@@ -22,56 +22,13 @@ module.exports = async () => {
     await iterator.eachOfSeries(
       projects,
       async (projectConfig, projectName) => {
-        const projectKubeconfigs = {}
-        let kubeconfigsLastCreationDate
-
-        await iterator.eachOf(clusters, async (clusterConfig, clusterName) => {
-          const {
-            environment,
-            contextName = clusterName,
-            contextRename = null,
-            isEnvironmentDefaultKubeconfigContext = false,
-          } = clusterConfig
-          if (!projectKubeconfigs[environment]) {
-            projectKubeconfigs[environment] = {}
-          }
-          const envKubeconfig = projectKubeconfigs[environment]
-
-          const namespace = projectConfig.ciNamespace || `ci-${projectName}`
-          const kubeconfigSecret = await loaders.kubernetes.secret({
-            name: "kubeconfig",
-            namespace,
-            context: contextName,
+        const { projectKubeconfigs, kubeconfigsLastCreationDate } =
+          await getProjectKubeconfigs({
+            loaders,
+            clusters,
+            projectName,
+            projectConfig,
           })
-
-          const kubeconfigCreationDate = dayjs(
-            kubeconfigSecret.metadata.creationTimestamp,
-          ).toDate()
-          if (
-            !kubeconfigsLastCreationDate ||
-            kubeconfigsLastCreationDate < kubeconfigCreationDate
-          ) {
-            kubeconfigsLastCreationDate = kubeconfigCreationDate
-          }
-
-          const kubeconfig = await loaders.kubernetes.kubeconfig({
-            raw: kubeconfigSecret.data.KUBECONFIG,
-            contextName,
-          })
-
-          mergeKubeconfig(envKubeconfig, kubeconfig, contextName)
-
-          if (isEnvironmentDefaultKubeconfigContext) {
-            envKubeconfig["current-context"] = contextName
-          }
-          if (contextRename) {
-            envKubeconfig.contexts.find(
-              ({ name }) => name === contextName,
-            ).name = contextRename
-          }
-        })
-
-        // dbug({ projectKubeconfigs, kubeconfigsLastCreationDate });
 
         const { team = projectName } = projectConfig
         const { data: reposData } = await loaders.github.teamRepos({
@@ -81,41 +38,13 @@ module.exports = async () => {
         // private repos doesn't support environments on github free plan
         const repos = reposData.filter((repo) => !repo.private)
 
-        await iterator.eachSeries(
+        await applyGithubPlaysOnRepos({
+          environments,
+          plays,
+          projectKubeconfigs,
+          kubeconfigsLastCreationDate,
           repos,
-          async (repoConfig) => {
-            const logger = ctx.getLogger()
-            const [owner, repo] = repoConfig.full_name.split("/")
-            const { id: repoId } = repoConfig
-            logger.info(`Repo: ${repo}`)
-            await iterator.eachOfSeries(
-              environments,
-              async (environementConfig, envName) => {
-                const { githubName: environmentName = envName } =
-                  environementConfig
-                await plays.github.ensureEnvironment({
-                  owner,
-                  repo,
-                  environmentName,
-                })
-                await plays.github.upsertSecret({
-                  owner,
-                  repo,
-                  name: "KUBECONFIG",
-                  environmentName,
-                  repoId,
-                  value: Buffer.from(
-                    JSON.stringify(projectKubeconfigs[envName]),
-                    "utf-8",
-                  ).toString("base64"),
-                  valueLastModifiedDate: kubeconfigsLastCreationDate,
-                })
-              },
-              "environments",
-            )
-          },
-          "repos",
-        )
+        })
       },
       "projects",
     )
@@ -126,4 +55,130 @@ module.exports = async () => {
     plays,
     loaders,
   })
+}
+
+async function getProjectKubeconfigs({
+  loaders,
+  clusters,
+  projectName,
+  projectConfig,
+}) {
+  const iterator = ctx.require("iterator")
+
+  const projectKubeconfigs = {}
+  let kubeconfigsLastCreationDate
+
+  await iterator.eachOf(clusters, async (clusterConfig, clusterName) => {
+    const {
+      environment,
+      contextName = clusterName,
+      contextRename = null,
+      isEnvironmentDefaultKubeconfigContext = false,
+    } = clusterConfig
+    if (!projectKubeconfigs[environment]) {
+      projectKubeconfigs[environment] = {}
+    }
+    const envKubeconfig = projectKubeconfigs[environment]
+
+    const namespace = projectConfig.ciNamespace || `ci-${projectName}`
+    const kubeconfigSecret = await loaders.kubernetes.secret({
+      name: "kubeconfig",
+      namespace,
+      context: contextName,
+    })
+
+    const kubeconfigCreationDate = dayjs(
+      kubeconfigSecret.metadata.creationTimestamp,
+    ).toDate()
+    if (
+      !kubeconfigsLastCreationDate ||
+      kubeconfigsLastCreationDate < kubeconfigCreationDate
+    ) {
+      kubeconfigsLastCreationDate = kubeconfigCreationDate
+    }
+
+    const kubeconfig = await loaders.kubernetes.kubeconfig({
+      raw: kubeconfigSecret.data.KUBECONFIG,
+      contextName,
+    })
+
+    mergeKubeconfig(envKubeconfig, kubeconfig, contextName)
+
+    if (isEnvironmentDefaultKubeconfigContext) {
+      envKubeconfig["current-context"] = contextName
+    }
+    if (contextRename) {
+      envKubeconfig.contexts.find(({ name }) => name === contextName).name =
+        contextRename
+    }
+  })
+
+  // dbug({ projectKubeconfigs, kubeconfigsLastCreationDate });
+  return { projectKubeconfigs, kubeconfigsLastCreationDate }
+}
+
+async function applyGithubPlaysOnRepos({
+  environments,
+  plays,
+  projectKubeconfigs,
+  kubeconfigsLastCreationDate,
+  repos,
+}) {
+  const iterator = ctx.require("iterator")
+  await iterator.eachSeries(
+    repos,
+    async (repoConfig) => {
+      const logger = ctx.getLogger()
+      const [owner, repo] = repoConfig.full_name.split("/")
+      const { id: repoId } = repoConfig
+      logger.info(`Repo: ${repo}`)
+      await applyGithubPlaysOnEnvironments({
+        iterator,
+        environments,
+        plays,
+        owner,
+        repo,
+        repoId,
+        projectKubeconfigs,
+        kubeconfigsLastCreationDate,
+      })
+    },
+    "repos",
+  )
+}
+
+async function applyGithubPlaysOnEnvironments({
+  environments,
+  plays,
+  projectKubeconfigs,
+  kubeconfigsLastCreationDate,
+  owner,
+  repo,
+  repoId,
+}) {
+  const iterator = ctx.require("iterator")
+  await iterator.eachOfSeries(
+    environments,
+    async (environementConfig, envName) => {
+      const { githubName: environmentName = envName } = environementConfig
+      await plays.github.ensureEnvironment({
+        owner,
+        repo,
+        environmentName,
+      })
+      await plays.github.upsertSecret({
+        owner,
+        repo,
+        name: "KUBECONFIG",
+        environmentName,
+        repoId,
+        value: Buffer.from(
+          JSON.stringify(projectKubeconfigs[envName]),
+          "utf-8",
+        ).toString("base64"),
+        valueLastModifiedDate: kubeconfigsLastCreationDate,
+      })
+    },
+    "environments",
+  )
 }
